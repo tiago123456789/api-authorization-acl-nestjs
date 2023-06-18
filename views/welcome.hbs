@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Signing up</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Varela+Round');
+
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: Varela Round, 'Segoe UI', 'Arial', 'san serif';
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 20px auto;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, .1);
+            min-height: 100px;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #0267c1, #d65108);
+        }
+
+        .illustration {
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, .05);
+            border-radius: 0 0 50% 50% / 1%;
+            text-align: center;
+        }
+
+        .hgroup {
+            text-align: center;
+            padding: 50px 30px 30px;
+        }
+
+        .name {
+            display: block;
+            color: #0267c1;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .hgroup h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .hgroup h2 {
+            font-size: 19px;
+        }
+
+        .hgroup p {
+            font-size: 15px;
+            color: slategrey;
+            margin-top: 15px;
+            text-align: justify;
+            line-height: 25px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="illustration">
+            <div class="hgroup">
+                <span class="name">Hello, {{name}}</span>
+                <h1>Thank you for Signing Up</h1>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
