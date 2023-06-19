@@ -17,11 +17,14 @@ import { PermissionService } from './permission.service';
 import { UserPermission } from '../entities/user-permission.entity';
 import { CredentialAuthDto } from '../dtos/credential-auth.dto';
 import { Permission } from '../entities/permission.entity';
+import { UserPermissionDto } from '../dtos/user-permission.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly repository: Repository<User>,
+    @InjectRepository(UserPermission)
+    private readonly userPermissionRepository: Repository<UserPermission>,
     @Inject(provider.ENCRYPTER) private readonly encrypter: EncrypterInterface,
     @Inject(provider.AUTH_TOKEN) private readonly authToken: AuthTokenInterface,
     @Inject(provider.MAILER) private readonly mailer: MailerInterface,
@@ -29,6 +32,67 @@ export class UserService {
     private readonly permissionService: PermissionService,
     @InjectConnection() private connection: Connection,
   ) {}
+
+  async applyPermissionToUser(userPermission: UserPermissionDto) {
+    const [user, permission, userPermissionReturned] = await Promise.all([
+      this.findById(userPermission.userId),
+      this.permissionService.findById(userPermission.permissionId),
+      this.userPermissionRepository.findOne({
+        where: {
+          user: {
+            id: userPermission.userId,
+          },
+          permission: {
+            id: userPermission.permissionId,
+          },
+        },
+      }),
+    ]);
+
+    if (userPermissionReturned) {
+      return;
+    }
+
+    return this.repository
+      .createQueryBuilder()
+      .insert()
+      .into(UserPermission)
+      .values([
+        {
+          user,
+          permission,
+        },
+      ])
+      .execute();
+  }
+
+  async removePermissionToUser(userPermission: UserPermissionDto) {
+    const userPermissionReturned = await this.userPermissionRepository.findOne({
+      where: {
+        user: {
+          id: userPermission.userId,
+        },
+        permission: {
+          id: userPermission.permissionId,
+        },
+      },
+    });
+
+    if (!userPermissionReturned) {
+      throw new NotFoundException(
+        "User not exist or user don't have that permission",
+      );
+    }
+
+    return this.userPermissionRepository.delete({
+      user: {
+        id: userPermission.userId,
+      },
+      permission: {
+        id: userPermission.permissionId,
+      },
+    });
+  }
 
   async getAll(): Promise<UserDto[]> {
     const registers: User[] = await this.repository.find();
@@ -92,7 +156,7 @@ export class UserService {
         usersPermissionsToSave.push(userPermission);
       }
 
-      if (usersPermissionsToSave.length < 0) {
+      if (usersPermissionsToSave.length > 0) {
         await manager
           .createQueryBuilder()
           .insert()
@@ -133,9 +197,19 @@ export class UserService {
       throw new HttpException('Email or password is invalid!', 400);
     }
 
-    const permissions = await this.permissionService.getAllByRoleId(
-      userByEmail.getRole().getId(),
+    const userPermissions = await this.userPermissionRepository.find({
+      where: {
+        user: {
+          id: userByEmail.getId(),
+        },
+      },
+    });
+
+    const permissionsIds = userPermissions.map((item) =>
+      item.getPermission().getId(),
     );
+
+    const permissions = await this.permissionService.findByIds(permissionsIds);
     return this.authToken.get({
       email: credential.email,
       id: userByEmail.getId(),

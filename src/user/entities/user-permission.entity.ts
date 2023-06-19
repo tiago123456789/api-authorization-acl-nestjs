@@ -7,7 +7,7 @@ export class UserPermission {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @ManyToOne(() => Permission, (permission) => permission.id)
+  @ManyToOne(() => Permission, (permission) => permission.id, { eager: true })
   @JoinColumn({ name: 'permission_id' })
   public permission: Permission;
 
